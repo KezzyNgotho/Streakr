@@ -1,10 +1,11 @@
 "use client"
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAvatar } from '../context/AvatarContext';
-import { ConnectWallet } from '@coinbase/onchainkit/wallet';
+import { useAccount } from 'wagmi';
+import { useConnectWallet } from '@coinbase/onchainkit/wallet';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [dark, setDark] = React.useState<boolean>(false);
   const { avatar } = useAvatar();
   const pathname = usePathname();
+
+  // WalletConnectDisplay component for best UX
+  function WalletConnectDisplay() {
+    const { address, isConnected } = useAccount();
+    const { connect } = useConnectWallet();
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => { setIsClient(true); }, []);
+    if (!isClient) return null;
+    return isConnected ? (
+      <div className="text-xs text-gray-600 bg-gray-100 rounded px-2 py-1 cursor-pointer" title={address}>
+        Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+      </div>
+    ) : (
+      <button
+        className="text-xs text-primary bg-primary/10 rounded px-2 py-1 font-semibold hover:bg-primary/20 transition cursor-pointer"
+        onClick={connect}
+      >
+        Connect Wallet
+      </button>
+    );
+  }
 
   return (
     <div className={dark ? "min-h-screen bg-[#181A20] font-sans" : "min-h-screen bg-background font-sans"}>
@@ -63,7 +85,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
           {/* Best Wallet Connect UX */}
-          <ConnectWallet />
+          <WalletConnectDisplay />
           {/* User Avatar (global) */}
           <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg cursor-pointer hover:ring-2 hover:ring-primary transition">
             <span>{avatar}</span>
