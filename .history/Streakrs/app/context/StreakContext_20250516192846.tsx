@@ -30,11 +30,17 @@ export function StreakProvider({ children }: { children: ReactNode }) {
     ]);
   }
   function completeStreak(id: string) {
-    setStreaks((prev) => prev.map(s =>
-      s.id === id
-        ? { ...s, count: s.count + 1, completed: true }
-        : s
-    ));
+    setStreaks((prev) => prev.map(s => {
+      if (s.id === id) {
+        const newCount = s.count + 1;
+        return {
+          ...s,
+          count: newCount,
+          completed: newCount >= 7,
+        };
+      }
+      return s;
+    }));
   }
   function resetStreak(id: string) {
     setStreaks((prev) => prev.map(s => s.id === id ? { ...s, count: 0, completed: false } : s));

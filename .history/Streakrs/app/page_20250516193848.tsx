@@ -513,18 +513,6 @@ function HomePage() {
                       <div className="text-xs text-green-700 font-medium">{streak.frequency} • {streak.count} days</div>
                     </div>
                     <span className="text-green-600 font-bold text-xs ml-2">Completed!</span>
-                    {streak.completed && !streak.minted && (
-                      <motion.button
-                        className="px-3 py-1 rounded-lg bg-orange-400 text-white text-xs font-semibold hover:bg-orange-500 transition shadow focus:outline-none focus:ring-2 focus:ring-orange-400"
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleClaim(streak.id)}
-                      >
-                        Claim NFT
-                      </motion.button>
-                    )}
-                    {claimMsgId === streak.id && (
-                      <span className="ml-2 text-fuchsia-600 text-xs font-semibold">NFT badge claimed!</span>
-                    )}
                   </div>
                 ))}
               </div>

@@ -148,6 +148,9 @@ export default function App() {
   const { avatar } = useAvatar();
   const [darkMode, setDarkMode] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [completeMsgId, setCompleteMsgId] = useState<string | null>(null);
+  const [claimMsgId, setClaimMsgId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isFrameReady) {
@@ -291,9 +294,6 @@ function HomePage() {
   const { streaks, addStreak, completeStreak, mintStreak } = useStreaks();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", frequency: "daily" });
-  // Confirmation messages for marking complete and claiming NFT
-  const [completeMsgId, setCompleteMsgId] = useState<string | null>(null);
-  const [claimMsgId, setClaimMsgId] = useState<string | null>(null);
 
   // XP/level logic (simple demo)
   const totalCompletions = streaks.reduce((a, s) => a + s.count, 0);
@@ -319,13 +319,11 @@ function HomePage() {
   function handleComplete(streakId: string) {
     completeStreak(streakId);
     setCompleteMsgId(streakId);
-    setTimeout(() => setCompleteMsgId(null), 2000);
   }
 
   function handleClaim(streakId: string) {
     mintStreak(streakId);
     setClaimMsgId(streakId);
-    setTimeout(() => setClaimMsgId(null), 2000);
   }
 
   // Top row: mobile header and welcome card
@@ -513,18 +511,6 @@ function HomePage() {
                       <div className="text-xs text-green-700 font-medium">{streak.frequency} • {streak.count} days</div>
                     </div>
                     <span className="text-green-600 font-bold text-xs ml-2">Completed!</span>
-                    {streak.completed && !streak.minted && (
-                      <motion.button
-                        className="px-3 py-1 rounded-lg bg-orange-400 text-white text-xs font-semibold hover:bg-orange-500 transition shadow focus:outline-none focus:ring-2 focus:ring-orange-400"
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleClaim(streak.id)}
-                      >
-                        Claim NFT
-                      </motion.button>
-                    )}
-                    {claimMsgId === streak.id && (
-                      <span className="ml-2 text-fuchsia-600 text-xs font-semibold">NFT badge claimed!</span>
-                    )}
                   </div>
                 ))}
               </div>

@@ -7,7 +7,6 @@ export interface Streak {
   frequency: "daily" | "weekly";
   count: number;
   completed: boolean;
-  minted: boolean;
 }
 
 interface StreakContextType {
@@ -15,7 +14,6 @@ interface StreakContextType {
   addStreak: (name: string, frequency: "daily" | "weekly") => void;
   completeStreak: (id: string) => void;
   resetStreak: (id: string) => void;
-  mintStreak: (id: string) => void;
 }
 
 const StreakContext = createContext<StreakContextType | undefined>(undefined);
@@ -26,25 +24,18 @@ export function StreakProvider({ children }: { children: ReactNode }) {
   function addStreak(name: string, frequency: "daily" | "weekly") {
     setStreaks((prev) => [
       ...prev,
-      { id: Date.now().toString(), name, frequency, count: 0, completed: false, minted: false },
+      { id: Date.now().toString(), name, frequency, count: 0, completed: false },
     ]);
   }
   function completeStreak(id: string) {
-    setStreaks((prev) => prev.map(s =>
-      s.id === id
-        ? { ...s, count: s.count + 1, completed: true }
-        : s
-    ));
+    setStreaks((prev) => prev.map(s => s.id === id ? { ...s, count: s.count + 1, completed: true } : s));
   }
   function resetStreak(id: string) {
     setStreaks((prev) => prev.map(s => s.id === id ? { ...s, count: 0, completed: false } : s));
   }
-  function mintStreak(id: string) {
-    setStreaks((prev) => prev.map(s => s.id === id ? { ...s, minted: true } : s));
-  }
 
   return (
-    <StreakContext.Provider value={{ streaks, addStreak, completeStreak, resetStreak, mintStreak }}>
+    <StreakContext.Provider value={{ streaks, addStreak, completeStreak, resetStreak }}>
       {children}
     </StreakContext.Provider>
   );

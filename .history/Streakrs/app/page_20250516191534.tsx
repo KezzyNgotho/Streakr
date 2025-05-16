@@ -288,12 +288,9 @@ export default function App() {
 
 function HomePage() {
   const { avatar } = useAvatar();
-  const { streaks, addStreak, completeStreak, mintStreak } = useStreaks();
+  const { streaks, addStreak, mintStreak } = useStreaks();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", frequency: "daily" });
-  // Confirmation messages for marking complete and claiming NFT
-  const [completeMsgId, setCompleteMsgId] = useState<string | null>(null);
-  const [claimMsgId, setClaimMsgId] = useState<string | null>(null);
 
   // XP/level logic (simple demo)
   const totalCompletions = streaks.reduce((a, s) => a + s.count, 0);
@@ -314,18 +311,6 @@ function HomePage() {
     addStreak(form.name, form.frequency as "daily" | "weekly");
     setForm({ name: "", frequency: "daily" });
     setShowAdd(false);
-  }
-
-  function handleComplete(streakId: string) {
-    completeStreak(streakId);
-    setCompleteMsgId(streakId);
-    setTimeout(() => setCompleteMsgId(null), 2000);
-  }
-
-  function handleClaim(streakId: string) {
-    mintStreak(streakId);
-    setClaimMsgId(streakId);
-    setTimeout(() => setClaimMsgId(null), 2000);
   }
 
   // Top row: mobile header and welcome card
@@ -447,6 +432,9 @@ function HomePage() {
       {/* Quick Actions Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         <button className="w-full px-4 py-2 rounded-lg bg-primary text-white font-semibold shadow-lg hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary" onClick={() => setShowAdd(true)}>+ Add Streak</button>
+        {activeStreaks.length > 0 && (
+          <button className="w-full px-4 py-2 rounded-lg bg-orange-400 text-white font-semibold shadow-lg hover:bg-orange-500 transition focus:outline-none focus:ring-2 focus:ring-orange-400">Claim NFT</button>
+        )}
         <button className="w-full px-4 py-2 rounded-lg bg-secondary text-gray-900 font-semibold shadow-lg hover:bg-secondary/80 transition focus:outline-none focus:ring-2 focus:ring-secondary">Share Progress</button>
         <ShareFarcasterButton
           text="Check out my streaks on Streakrs! 🔥"
@@ -475,22 +463,19 @@ function HomePage() {
                       <div className="text-xs text-gray-700 font-medium">{streak.frequency} • {streak.count} days</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition shadow focus:outline-none focus:ring-2 focus:ring-primary" onClick={() => handleComplete(streak.id)}>+1</button>
-                      {completeMsgId === streak.id && (
-                        <span className="ml-2 text-green-600 text-xs font-semibold">Streak marked as complete!</span>
-                      )}
+                      <button className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition shadow focus:outline-none focus:ring-2 focus:ring-primary">+1</button>
                       <button className="px-3 py-1 rounded-lg bg-gray-100 text-gray-900 text-xs font-semibold hover:bg-gray-200 transition shadow focus:outline-none focus:ring-2 focus:ring-gray-300">Reset</button>
                       {streak.completed && !streak.minted && (
                         <motion.button
                           className="px-3 py-1 rounded-lg bg-orange-400 text-white text-xs font-semibold hover:bg-orange-500 transition shadow focus:outline-none focus:ring-2 focus:ring-orange-400"
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => handleClaim(streak.id)}
+                          onClick={() => mintStreak(streak.id)}
                         >
                           Claim NFT
                         </motion.button>
                       )}
-                      {claimMsgId === streak.id && (
-                        <span className="ml-2 text-fuchsia-600 text-xs font-semibold">NFT badge claimed!</span>
+                      {streak.minted && (
+                        <span className="px-3 py-1 rounded-lg bg-green-200 text-green-800 text-xs font-semibold shadow">NFT Claimed!</span>
                       )}
                     </div>
                   </motion.div>
@@ -513,18 +498,6 @@ function HomePage() {
                       <div className="text-xs text-green-700 font-medium">{streak.frequency} • {streak.count} days</div>
                     </div>
                     <span className="text-green-600 font-bold text-xs ml-2">Completed!</span>
-                    {streak.completed && !streak.minted && (
-                      <motion.button
-                        className="px-3 py-1 rounded-lg bg-orange-400 text-white text-xs font-semibold hover:bg-orange-500 transition shadow focus:outline-none focus:ring-2 focus:ring-orange-400"
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleClaim(streak.id)}
-                      >
-                        Claim NFT
-                      </motion.button>
-                    )}
-                    {claimMsgId === streak.id && (
-                      <span className="ml-2 text-fuchsia-600 text-xs font-semibold">NFT badge claimed!</span>
-                    )}
                   </div>
                 ))}
               </div>
@@ -533,24 +506,21 @@ function HomePage() {
         </div>
         {/* Right Column: NFT Badges & Explore */}
         <div className="flex flex-col gap-6">
-          {/* NFT Badge Preview (always visible) */}
+          {/* NFT Badge Preview */}
           <section className="bg-white rounded-2xl shadow-lg p-5 flex flex-col gap-3 border border-orange-400/10 text-xs">
             <div className="flex items-center mb-2">
               <h3 className="text-lg font-bold text-gray-900 tracking-tight flex-1">NFT Badges</h3>
               <a href="/gallery" className="text-primary text-xs font-semibold hover:underline">View all</a>
             </div>
-            <div className="flex gap-3 flex-wrap min-h-[5rem] items-center justify-center">
-              {mintedStreaks.length === 0 ? (
-                <div className="text-gray-700 text-sm text-center w-full">No NFT badges yet.<br/>Complete a streak and claim it to mint your first badge!</div>
-              ) : (
-                mintedStreaks.map((streak) => (
-                  <motion.div key={streak.id} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center bg-orange-50 rounded-xl shadow p-3 w-20 border border-gray-100">
-                    <div className="text-2xl mb-1">🔥</div>
-                    <div className="text-xs text-gray-900 font-semibold text-center">{streak.name}</div>
-                    <div className="text-xs text-gray-700">7-day streak</div>
-                  </motion.div>
-                ))
-              )}
+            <div className="flex gap-3 flex-wrap">
+              {mintedStreaks.length === 0 && <div className="text-gray-700 text-sm">No NFTs yet. Complete and claim a streak to mint your first badge!</div>}
+              {mintedStreaks.map((streak) => (
+                <motion.div key={streak.id} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center bg-orange-50 rounded-xl shadow p-3 w-20 border border-gray-100">
+                  <div className="text-2xl mb-1">🔥</div>
+                  <div className="text-xs text-gray-900 font-semibold text-center">{streak.name}</div>
+                  <div className="text-xs text-gray-700">7-day streak</div>
+                </motion.div>
+              ))}
             </div>
           </section>
           {/* Explore/Suggested Habits */}

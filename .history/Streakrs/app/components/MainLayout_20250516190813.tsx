@@ -3,9 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ConnectWallet } from '@coinbase/onchainkit/wallet';
 import { useAvatar } from '../context/AvatarContext';
-import { useAccount } from 'wagmi';
-import { useConnectWallet } from '@coinbase/onchainkit/wallet';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -24,29 +23,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [dark, setDark] = React.useState<boolean>(false);
   const { avatar } = useAvatar();
   const pathname = usePathname();
-  const { address, isConnected } = useAccount();
-  const { connect } = useConnectWallet();
-
-  // WalletConnectDisplay component for best UX
-  function WalletConnectDisplay() {
-    const { address, isConnected } = useAccount();
-    const { connect } = useConnectWallet();
-    const [isClient, setIsClient] = useState(false);
-    useEffect(() => { setIsClient(true); }, []);
-    if (!isClient) return null;
-    return isConnected ? (
-      <div className="text-xs text-gray-600 bg-gray-100 rounded px-2 py-1 cursor-pointer" title={address}>
-        Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
-      </div>
-    ) : (
-      <button
-        className="text-xs text-primary bg-primary/10 rounded px-2 py-1 font-semibold hover:bg-primary/20 transition cursor-pointer"
-        onClick={connect}
-      >
-        Connect Wallet
-      </button>
-    );
-  }
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
 
   return (
     <div className={dark ? "min-h-screen bg-[#181A20] font-sans" : "min-h-screen bg-background font-sans"}>
@@ -86,8 +64,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <svg className="w-6 h-6 text-dark" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          {/* Best Wallet Connect UX */}
-          <WalletConnectDisplay />
+          {/* Connect Wallet Button (MiniKit) */}
+          {isClient && <ConnectWallet />}
           {/* User Avatar (global) */}
           <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg cursor-pointer hover:ring-2 hover:ring-primary transition">
             <span>{avatar}</span>
